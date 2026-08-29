@@ -1,0 +1,50 @@
+{
+  "name": "dspice-editor",
+  "displayName": "DSpice Editor",
+  "version": "0.2.0",
+  "publisher": "dspice",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCustomEditor:dspiceEditor.dcsEditor",
+    "onCustomEditor:dspiceEditor.symEditor"
+  ],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "dspiceEditor.dcsEditor",
+        "displayName": "DCS Circuit Editor",
+        "selector": [{ "filenamePattern": "*.dcs" }],
+        "priority": "default"
+      },
+      {
+        "viewType": "dspiceEditor.symEditor",
+        "displayName": "SYM Symbol Editor",
+        "selector": [{ "filenamePattern": "*.sym" }],
+        "priority": "default"
+      }
+    ],
+    "languages": [
+      {
+        "id": "dcs",
+        "extensions": [".dcs"],
+        "aliases": ["DCS Circuit", "dcs"],
+        "icon": {
+          "light": "./media/icons/file-cds.svg",
+          "dark": "./media/icons/file-cds.svg"
+        }
+      },
+      {
+        "id": "sym",
+        "extensions": [".sym"],
+        "aliases": ["Symbol File", "sym"],
+        "icon": {
+          "light": "./media/icons/file-sym.svg",
+          "dark": "./media/icons/file-sym.svg"
+        }
+      }
+    ]
+  }
+}

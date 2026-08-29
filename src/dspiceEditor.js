@@ -1,0 +1,326 @@
+const vscode = require('vscode');
+const SymbolsSync = require('./symbolsSync');
+const fs = require('fs');
+const path = require('path');
+
+class DSpiceEditorProvider {
+    constructor(context, viewType, fileType) {
+        this.context = context;
+        this.viewType = viewType;
+        this.fileType = fileType;
+    }
+
+    static register(context, viewType, fileType) {
+        const provider = new DSpiceEditorProvider(context, viewType, fileType);
+        return vscode.window.registerCustomEditorProvider(
+            viewType,
+            provider,
+            {
+                webviewOptions: { retainContextWhenHidden: true },
+                supportsMultipleEditorsPerDocument: false
+            }
+        );
+    }
+
+    async resolveCustomTextEditor(document, webviewPanel, token) {
+        webviewPanel.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [
+                vscode.Uri.joinPath(this.context.extensionUri, 'media')
+            ]
+        };
+
+        webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
+
+        DSpiceEditorProvider.activeWebview = webviewPanel.webview;
+
+        // ✅ إرسال المحتوى الحالي (أول تحميل أو عند Undo/Redo)
+        const sendContent = (text) => {
+            webviewPanel.webview.postMessage({
+                type: 'update',
+                content: text,
+                fileType: this.fileType
+            });
+        };
+
+        // ✅ عند استلام "ready" من الـ Webview
+        const msgDisposable = webviewPanel.webview.onDidReceiveMessage(async message => {
+            switch (message.type) {
+                case 'contentChanged':
+                case 'save':
+                    this.applyContentChange(document, message.content);
+                    break;
+case 'ready':
+    sendContent(document.getText());
+    break;
+                case 'updateDataSymbols':
+                   const result =  await SymbolsSync.sync(document, this.context);
+                if (result && DSpiceEditorProvider.activeWebview) {
+                   DSpiceEditorProvider.activeWebview.postMessage({
+                      type: 'symbolsDataUpdated',
+                     data: result
+                    }); }
+                    break;
+
+                    case 'readSymFiles':
+  
+    const extPath = this.context.extensionPath;
+    const symbolsDir = path.join(extPath, 'symbols');
+    const targetDir = path.join(symbolsDir, message.dir);
+    
+    const contents = [];
+    if (message.files && Array.isArray(message.files)) {
+        for (const file of message.files) {
+            const filePath = path.join(targetDir, file);
+            console.log(filePath);
+            try {
+                const data = fs.readFileSync(filePath, 'utf8');
+                contents.push(data);
+            } catch (e) {
+                console.error('❌ Error reading', filePath, e);
+                contents.push(null);
+            }
+        }
+    }
+    console.log(contents);
+    webviewPanel.webview.postMessage({
+        type: 'symFilesContent',
+        contents: contents
+    });
+    break;
+
+    case 'readSymFilesFromWorkSpace':
+    const allContents = [];
+    
+    if (vscode.workspace.workspaceFolders) {
+        for (const folder of vscode.workspace.workspaceFolders) {
+            const folderPath = folder.uri.fsPath;
+            
+            // دالة بحث متكررة
+            function scanDir(dirPath) {
+                if (!fs.existsSync(dirPath)) return;
+                const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+                
+                for (const entry of entries) {
+                    const fullPath = path.join(dirPath, entry.name);
+                    if (entry.isDirectory()) {
+                        scanDir(fullPath); // نزول للمجلد الفرعي
+                    } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.sym')) {
+                        try {
+                            const data = fs.readFileSync(fullPath, 'utf8');
+                            allContents.push(data);
+                        } catch (e) {
+                            console.error('❌ Error reading', fullPath, e);
+                            allContents.push(null);
+                        }
+                    }
+                }
+            }
+            
+            scanDir(folderPath);
+        }
+    }
+    
+    webviewPanel.webview.postMessage({
+        type: 'symFilesFromWorkSpaceContent',
+        contents: allContents
+    });
+    break;
+            }
+        });
+
+        // ✅ الاستماع على Undo/Redo وتغييرات VS Code
+        const docDisposable = vscode.workspace.onDidChangeTextDocument(e => {
+            if (e.document.uri.toString() === document.uri.toString()) {
+                sendContent(e.document.getText());
+            }
+        });
+
+webviewPanel.onDidDispose(() => {
+    msgDisposable.dispose();
+    docDisposable.dispose();
+    
+    // ✅ إزالة المرجع عند الإغلاق
+    if (DSpiceEditorProvider.activeWebview === webviewPanel.webview) {
+        DSpiceEditorProvider.activeWebview = null;
+    }
+});
+    }
+
+    async applyContentChange(document, content) {
+        const edit = new vscode.WorkspaceEdit();
+        const fullRange = new vscode.Range(
+            document.positionAt(0),
+            document.positionAt(document.getText().length)
+        );
+        edit.replace(document.uri, fullRange, content);
+        await vscode.workspace.applyEdit(edit);
+    }
+
+    getHtmlForWebview(webview) {
+        const nonce = getNonce();
+
+        const mediaPath = vscode.Uri.joinPath(this.context.extensionUri, 'media');
+        const cadPath = vscode.Uri.joinPath(mediaPath,'cad');
+        const dialogPath = vscode.Uri.joinPath(mediaPath,'dialog');
+
+        // ✅ تعريف جميع المتغيرات بشكل صحيح
+        const rulerJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'ruler.js'));
+        const gridJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'grid.js'));
+        const bodyJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'body.js'));
+        const shapesJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'shapes.js'));
+        const resizeJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'resize.js'));
+        const designeJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'designe.js'));
+        const listSymbolJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'listSymbol.js'));
+        const sh01Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'information.js'));
+        const sh02Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'polyline.js'));
+        const sh03Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'arc.js'));
+        const sh04Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'pin.js'));
+        const sh05Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'ioparam.js'));
+        const sh06Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'part.js'));
+        const sh07Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'net.js'));
+        const sh08Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'text.js'));
+        const sh09Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'body.js'));
+        const sh10Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'toolButton.js'));
+        const sh11Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'cursor.js'));
+        const sh12Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'controle.js'));
+        const sh13Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'cnode.js'));
+        const sh14Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'utility.js'));
+        const sh15Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'measurement.js'));
+        const sh16Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'svg.js'));
+        const sh17Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'analysis.js'));
+        const sh18Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'plots.js'));
+        const sh19Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'codePy.js'));
+        const sh20Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'codeHtml.js'));
+        const sh21Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'codeSpice.js'));
+        const sh22Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'port.js'));
+        const sh23Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'vbar.js'));
+        const selectElementsJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'selectElements.js'));
+        const propertiesPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'propertiesPanel.js'));
+        const symbolsPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'symbolsPanel.js'));
+        const drawingJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'drawing.js'));
+        const plotlyJs =webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'pack','plotly-latest.min.js'));
+        const htmlCodeCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'css', 'HTMLcode.css'));
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' 'unsafe-eval';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSpice Editor</title>
+    <link href="${htmlCodeCss}" rel="stylesheet">
+    <style>
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: verdana; }
+        #content { width: 100%; height: 100%; position: relative; }
+    </style>
+</head>
+<body>
+    <div id="content"></div>
+
+
+    <script nonce="${nonce}" src="${sh01Js}"></script>
+    <script nonce="${nonce}" src="${sh02Js}"></script>
+    <script nonce="${nonce}" src="${sh03Js}"></script>
+    <script nonce="${nonce}" src="${sh04Js}"></script>
+    <script nonce="${nonce}" src="${sh05Js}"></script>
+    <script nonce="${nonce}" src="${sh06Js}"></script>
+    <script nonce="${nonce}" src="${sh07Js}"></script>
+    <script nonce="${nonce}" src="${sh08Js}"></script>
+    <script nonce="${nonce}" src="${sh09Js}"></script>
+    <script nonce="${nonce}" src="${sh10Js}"></script>
+    <script nonce="${nonce}" src="${sh11Js}"></script>
+    <script nonce="${nonce}" src="${sh12Js}"></script>
+    <script nonce="${nonce}" src="${sh13Js}"></script>
+    <script nonce="${nonce}" src="${sh14Js}"></script>
+    <script nonce="${nonce}" src="${sh15Js}"></script>
+    <script nonce="${nonce}" src="${sh16Js}"></script>
+    <script nonce="${nonce}" src="${sh17Js}"></script>
+    <script nonce="${nonce}" src="${sh18Js}"></script>
+    <script nonce="${nonce}" src="${sh19Js}"></script>
+    <script nonce="${nonce}" src="${sh20Js}"></script>
+    <script nonce="${nonce}" src="${sh21Js}"></script>
+    <script nonce="${nonce}" src="${sh22Js}"></script>
+    <script nonce="${nonce}" src="${sh23Js}"></script>
+    <script nonce="${nonce}" src="${selectElementsJs}"></script>
+    <script nonce="${nonce}" src="${propertiesPanelJs}"></script>
+    <script nonce="${nonce}" src="${symbolsPanelJs}"></script>
+    <script nonce="${nonce}" src="${rulerJs}"></script>
+    <script nonce="${nonce}" src="${gridJs}"></script>
+    <script nonce="${nonce}" src="${bodyJs}"></script>
+    <script nonce="${nonce}" src="${designeJs}"></script>
+    <script nonce="${nonce}" src="${shapesJs}"></script>
+    <script nonce="${nonce}" src="${resizeJs}"></script>
+    <script nonce="${nonce}" src="${listSymbolJs}"></script>
+    <script nonce="${nonce}" src="${drawingJs}"></script>
+    <script nonce="${nonce}" src="${plotlyJs}"></script>
+    
+
+
+    
+    <script nonce="${nonce}">
+        const vscode = acquireVsCodeApi();
+
+        // ✅ استقبال التحديثات من VS Code (بما فيها Undo/Redo)
+        window.addEventListener('message', event => {
+            const msg = event.data;
+            console.log('Message from VS Code:', msg.type);
+
+            if (msg.type === 'load' || msg.type === 'update') {
+
+                window.fileContent = msg.content;
+                window.fileType = msg.fileType;
+
+
+               if (typeof drawing !== 'undefined' && drawing.pendingSave) {
+                    console.log('Ignoring update (pending save)');
+                    drawing.pendingSave = false;
+                    return;
+                }
+                
+                if (typeof drawing !== 'undefined') {
+                    drawing.setFileType(window.fileType);
+                    drawing.setSymbol(window.fileContent);
+                    
+                }
+            }
+            else if (msg.type === 'symbolsDataUpdated') {
+                  if (typeof drawing !== 'undefined' && drawing.getDataSym) {
+                     drawing.getDataSym(msg.data);
+                     }
+             }
+           else if (msg.type === 'symFilesContent') {
+                if (typeof drawing !== 'undefined' && drawing._symFilesResolve) {
+                    drawing._symFilesResolve(msg.contents);
+                    drawing._symFilesResolve = null;
+                    }
+             }
+          else if (msg.type === 'symFilesFromWorkSpaceContent') {
+    if (typeof drawing !== 'undefined' && drawing._workspaceSymResolve) {
+        drawing._workspaceSymResolve(msg.contents);
+        drawing._workspaceSymResolve = null;
+    }
+}
+           
+        });
+
+        // إشعار VS Code بأن الـ Webview جاهز
+        vscode.postMessage({ type: 'ready' });
+    </script>
+</body>
+</html>`;
+    }
+}
+
+function getNonce() {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+
+module.exports = DSpiceEditorProvider;
+
+
