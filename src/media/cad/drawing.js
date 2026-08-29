@@ -8,6 +8,8 @@ var self = this;
  self.showPolarity=false;
  self.itProject=false;
  self.pendingSave = false;
+ self.selectPart= false;
+ self.selectAnalysis= false;
  self.dataSyms = {}; 
  
  self.symbol = {
@@ -180,6 +182,7 @@ self.getDataSym = function(data) {
  self.setFileType = function (type) {
      self.pageType = type;
      console.log('File type set to:', type);
+     if (self.updateToolbar) self.updateToolbar();
  }
  
 

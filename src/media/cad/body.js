@@ -3,7 +3,7 @@
 Name:        body.js
 Author:      d.fathi
 Created:     05/07/2021
-Update:      29/08/2026
+Update:      30/08/2026
 Copyright:   (c) DSpice 2026
 Licence:     free
 #---------------------------------------------------------------------------------------------------
@@ -36,9 +36,22 @@ width: fit-content;
 #toolbar.visible { opacity: 1; pointer-events: all; }
 .toolbar-group { display: flex; gap: 2px; padding: 0 4px; border-right: 1px solid #bbb; height: 100%; align-items: center; }
 .toolbar-group:last-child { border-right: none; }
+.toolbar-group.hidden-group { display: none; }
 .toolbar-btn { width: 28px; height: 28px; border: 1px solid #aaa; background: white; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #333; transition: all 0.15s; padding: 0; margin: 2px 0; }
 .toolbar-btn:hover { background: #e8e8ff; border-color: #6666cc; }
 .toolbar-btn.active { background: #c0c0ff; border-color: #4444aa; }
+.toolbar-btn.hidden-btn { display: none; }
+
+.toolbar-btn.disabled-btn { 
+    opacity: 0.35; 
+    cursor: not-allowed; 
+    pointer-events: none;
+    filter: grayscale(100%);
+}
+.toolbar-btn.disabled-btn:hover { 
+    background: white; 
+    border-color: #aaa; 
+}
 .toolbar-btn svg { width: 16px; height: 16px; pointer-events: none; }
 #setgrid { display: grid; width: 100%; height: 100%; grid-template-columns: 20px 1fr; grid-template-rows: 20px 1fr; }
 #areaA { background-color: Silver; }
@@ -67,7 +80,7 @@ body.innerHTML = `
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
    </button>
  </div>
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpWire">
    <button class="toolbar-btn" id="btnWire" title="Wire (W)">
      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
        <line x1="12" y1="2" x2="12" y2="22" stroke="currentColor" stroke-width="2.5"/>
@@ -83,7 +96,7 @@ body.innerHTML = `
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M2 8h20M2 16h20"/></svg>
    </button>
  </div>
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpComponent">
    <button class="toolbar-btn" id="btnPlaceComponent" title="Place Component (P)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
        <text x="17" y="7" text-anchor="middle" font-size="7" font-weight="bold" fill="currentColor" stroke="none">+</text>
@@ -113,7 +126,7 @@ body.innerHTML = `
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 20 8 17 18 7 18 4 8"/></svg>
    </button>
  </div>
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpPower">
    <button class="toolbar-btn" id="btnVCC" title="VCC Power (U)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
        <text x="12" y="7" text-anchor="middle" font-size="7" font-weight="bold" fill="currentColor" stroke="none">VCC</text>
@@ -137,7 +150,7 @@ body.innerHTML = `
      </svg>
    </button>
  </div>
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpSymProps">
    <button class="toolbar-btn" id="btnPin" title="Add Pin (I)">
      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
        <rect x="14" y="4" width="9" height="16" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -158,7 +171,8 @@ body.innerHTML = `
      </svg>
    </button>
  </div>
- <div class="toolbar-group">
+ 
+ <div class="toolbar-group" id="grpTransform">
    <button class="toolbar-btn" id="btnRotate" title="Rotate 90° (F)">
      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
        <polygon points="4,20 4,8 12,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -210,7 +224,7 @@ body.innerHTML = `
      </svg>
    </button>
  </div>
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpModel">
    <button class="toolbar-btn" id="btnModel" title="Model Definition (D)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -226,12 +240,13 @@ body.innerHTML = `
      </svg>
    </button>
  </div>
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpAnalysis">
    <button class="toolbar-btn" id="btnHTML" title="HTML Mode (M)">
      <svg viewBox="0 0 24 24" fill="currentColor">
        <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.127l-.326 3.382-2.911.817-2.978-.824-.19-2.11H6.317l.36 4.741L12 19.876l5.351-1.444.744-8.682H8.531z"/>
      </svg>
    </button>
+  
    <button class="toolbar-btn" id="btnAnalysis" title="Analysis (X)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
        <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -247,7 +262,7 @@ body.innerHTML = `
      </svg>
    </button>
  </div>
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpRun">
    <button class="toolbar-btn" id="btnRunAnalysis" title="Run Analysis (F9)">
      <svg viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="2">
        <rect x="3" y="2" width="18" height="16" rx="2"/>
@@ -265,32 +280,20 @@ body.innerHTML = `
      </svg>
    </button>
  </div>
- <!-- ✅ مجموعة جديدة: Sub Block -->
- <div class="toolbar-group">
+ <div class="toolbar-group" id="grpSubBlock">
    <button class="toolbar-btn" id="btnSubBlock" title="Sub Block (C)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" xmlns="http://www.w3.org/2000/svg">
-       <!-- المستطيل الرئيسي (Sub Block) -->
        <rect x="7" y="2" width="10" height="20" fill="none" stroke="currentColor" stroke-width="1.5"/>
-       
-       <!-- الجانب الأيسر: 3 مداخل (مثلثات تشير لليمين + مربعات) -->
-       <!-- المدخل الأول -->
        <rect x="2" y="5" width="3" height="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
        <polygon points="5,5 8,6.5 5,8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-       <!-- المدخل الثاني -->
        <rect x="2" y="10.5" width="3" height="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
        <polygon points="5,10.5 8,12 5,13.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-       <!-- المدخل الثالث -->
        <rect x="2" y="16" width="3" height="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
        <polygon points="5,16 8,17.5 5,19" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-       
-       <!-- الجانب الأيمن: 3 مخارج (مثلثات تشير لليسار + مربعات) -->
-       <!-- المخرج الأول -->
        <polygon points="19,5 16,6.5 19,8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
        <rect x="19" y="5" width="3" height="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
-       <!-- المخرج الثاني -->
        <polygon points="19,10.5 16,12 19,13.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
        <rect x="19" y="10.5" width="3" height="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
-       <!-- المخرج الثالث -->
        <polygon points="19,16 16,17.5 19,19" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
        <rect x="19" y="16" width="3" height="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
      </svg>
@@ -342,6 +345,123 @@ body.innerHTML = `
 initToolbar(self);
 }
 
+
+function updateToolbarVisibility(self) {
+    const pageType = (self.pageType || 'sym').toLowerCase();
+    
+    const symOnlyButtons = [
+        'btnWire', 'btnBus', 'btnPlaceComponent',
+        'btnVCC', 'btnGND', 'btnPort',
+        'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
+        'btnCommand', 'btnHTML', 'btnAnalysis', 'btnAV',
+        'btnRunAnalysis', 'btnRunAV', 'btnSubBlock'
+    ];
+    
+    const dcsOnlyButtons = [
+        'btnReference', 'btnParameter', 'btnPin'
+    ];
+    
+    symOnlyButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            if (pageType === 'sym') {
+                btn.classList.add('hidden-btn');
+            } else {
+                btn.classList.remove('hidden-btn');
+            }
+        }
+    });
+    
+    dcsOnlyButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            if (pageType === 'dcs') {
+                btn.classList.add('hidden-btn');
+            } else {
+                btn.classList.remove('hidden-btn');
+            }
+        }
+    });
+    
+    const groups = [
+        { id: 'grpWire', buttons: ['btnWire', 'btnBus'] },
+        { id: 'grpPower', buttons: ['btnVCC', 'btnGND', 'btnPort'] },
+        { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter'] },
+        { id: 'grpTransform', buttons: ['btnRotate', 'btnFlipVertical', 'btnFlipHorizontal'] },
+        { id: 'grpModel', buttons: ['btnModel', 'btnCommand'] },
+        { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV'] },
+        { id: 'grpRun', buttons: ['btnRunAnalysis', 'btnRunAV'] },
+        { id: 'grpSubBlock', buttons: ['btnSubBlock'] }
+    ];
+    
+    groups.forEach(group => {
+        const grp = document.getElementById(group.id);
+        if (grp) {
+            const allHidden = group.buttons.every(id => {
+                const btn = document.getElementById(id);
+                return btn && btn.classList.contains('hidden-btn');
+            });
+            if (allHidden) {
+                grp.classList.add('hidden-group');
+            } else {
+                grp.classList.remove('hidden-group');
+            }
+        }
+    });
+    
+    const activeBtn = document.querySelector('.toolbar-btn.active');
+    if (activeBtn && activeBtn.classList.contains('hidden-btn')) {
+        activeBtn.classList.remove('active');
+        const selectBtn = document.getElementById('btnSelect');
+        if (selectBtn) selectBtn.classList.add('active');
+    }
+}
+
+
+function updateButtonsState(self) {
+   
+    const transformButtons = ['btnRotate', 'btnFlipVertical', 'btnFlipHorizontal'];
+    const isSelectPart = !!self.selectPart;
+    
+    transformButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            if (isSelectPart) {
+                btn.classList.remove('disabled-btn');
+                btn.disabled = false;
+            } else {
+                btn.classList.add('disabled-btn');
+                btn.disabled = true;
+        
+                if (btn.classList.contains('active')) {
+                    btn.classList.remove('active');
+                    const selectBtn = document.getElementById('btnSelect');
+                    if (selectBtn) selectBtn.classList.add('active');
+                }
+            }
+        }
+    });
+    
+  
+    const btnRunAnalysis = document.getElementById('btnRunAnalysis');
+    const isSelectAnalysis = !!self.selectAnalysis;
+    
+    if (btnRunAnalysis) {
+        if (isSelectAnalysis) {
+            btnRunAnalysis.classList.remove('disabled-btn');
+            btnRunAnalysis.disabled = false;
+        } else {
+            btnRunAnalysis.classList.add('disabled-btn');
+            btnRunAnalysis.disabled = true;
+            if (btnRunAnalysis.classList.contains('active')) {
+                btnRunAnalysis.classList.remove('active');
+                const selectBtn = document.getElementById('btnSelect');
+                if (selectBtn) selectBtn.classList.add('active');
+            }
+        }
+    }
+}
+
 function initToolbar(self) {
 const toolbar = document.getElementById('toolbar');
 const areaGlobal = document.getElementById('areaGlobal');
@@ -358,7 +478,6 @@ document.getElementById('btnZoomOut').addEventListener('click', () => { if (self
 document.getElementById('btnGrid').addEventListener('click', (e) => { if (self.drawing && self.drawing.showGrid) { self.drawing.showGrid(!self.drawing.grid.showGrid); e.currentTarget.classList.toggle('active'); } });
 document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
 
-// أزرار ترتيب العناصر (Z-order)
 document.getElementById('btnBringToFront').addEventListener('click', () => {
     if (self.drawing && self.drawing.bringToFront) self.drawing.bringToFront();
 });
@@ -396,8 +515,15 @@ const toolNames = [
   'subblock'
 ];
 
+
+function isButtonEnabled(id) {
+    const btn = document.getElementById(id);
+    return btn && !btn.classList.contains('hidden-btn') && !btn.classList.contains('disabled-btn');
+}
+
 toolButtons.forEach((id, index) => {
     document.getElementById(id).addEventListener('click', () => {
+        if (!isButtonEnabled(id)) return;
         toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if (self.drawing && self.drawing.setTool) self.drawing.setTool(toolNames[index]);
@@ -417,10 +543,9 @@ document.addEventListener('keydown', (e) => {
       'f': 17,
       'd': 20, 'q': 21,
       'm': 22, 'x': 23, 'z': 24,
-      'c': 27  // Sub Block
+      'c': 27
     };
     
-    // اختصارات ترتيب العناصر
     if (isCtrl && isShift && key === ']') {
         if (self.drawing && self.drawing.bringToFront) self.drawing.bringToFront();
         e.preventDefault();
@@ -443,39 +568,63 @@ document.addEventListener('keydown', (e) => {
     }
     
     if (isShift && key === 'v') {
-        toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-        document.getElementById('btnFlipVertical').classList.add('active');
-        if (self.drawing && self.drawing.setTool) self.drawing.setTool('flipVertical');
+        if (isButtonEnabled('btnFlipVertical')) {
+            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
+            document.getElementById('btnFlipVertical').classList.add('active');
+            if (self.drawing && self.drawing.setTool) self.drawing.setTool('flipVertical');
+        }
         e.preventDefault();
         return;
     }
     if (isShift && key === 'h') {
-        toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-        document.getElementById('btnFlipHorizontal').classList.add('active');
-        if (self.drawing && self.drawing.setTool) self.drawing.setTool('flipHorizontal');
+        if (isButtonEnabled('btnFlipHorizontal')) {
+            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
+            document.getElementById('btnFlipHorizontal').classList.add('active');
+            if (self.drawing && self.drawing.setTool) self.drawing.setTool('flipHorizontal');
+        }
         e.preventDefault();
         return;
     }
     
     if (keyMap[key] !== undefined && !isShift) {
-        toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-        document.getElementById(toolButtons[keyMap[key]]).classList.add('active');
-        if (self.drawing && self.drawing.setTool) self.drawing.setTool(toolNames[keyMap[key]]);
+        const targetId = toolButtons[keyMap[key]];
+        if (isButtonEnabled(targetId)) {
+            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            if (self.drawing && self.drawing.setTool) self.drawing.setTool(toolNames[keyMap[key]]);
+        }
     }
     if (e.key === 'F9') {
-        toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-        document.getElementById('btnRunAnalysis').classList.add('active');
-        if (self.drawing && self.drawing.setTool) self.drawing.setTool('runAnalysis');
+        if (isButtonEnabled('btnRunAnalysis')) {
+            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
+            document.getElementById('btnRunAnalysis').classList.add('active');
+            if (self.drawing && self.drawing.setTool) self.drawing.setTool('runAnalysis');
+        }
         e.preventDefault();
     }
     if (e.key === 'F10') {
-        toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-        document.getElementById('btnRunAV').classList.add('active');
-        if (self.drawing && self.drawing.setTool) self.drawing.setTool('runAV');
+        if (isButtonEnabled('btnRunAV')) {
+            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
+            document.getElementById('btnRunAV').classList.add('active');
+            if (self.drawing && self.drawing.setTool) self.drawing.setTool('runAV');
+        }
         e.preventDefault();
     }
     if (key === '+' || key === '=') { if (self.drawing && self.drawing.zoomIn) self.drawing.zoomIn(); }
     if (key === '-') { if (self.drawing && self.drawing.zoomOut) self.drawing.zoomOut(); }
     if (key === 'g') { if (self.drawing && self.drawing.showGrid) self.drawing.showGrid(!self.drawing.grid.showGrid); }
 });
+
+
+updateToolbarVisibility(self);
+updateButtonsState(self);
+
+self.updateToolbar = function() {
+    updateToolbarVisibility(self);
+    updateButtonsState(self);
+};
+
+self.updateButtonsState = function() {
+    updateButtonsState(self);
+};
 }
