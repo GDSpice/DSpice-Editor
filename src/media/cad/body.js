@@ -308,7 +308,7 @@ body.innerHTML = `
    </button>
  </div>
  <div class="toolbar-group">
-   <button class="toolbar-btn" id="btnGrid" title="Toggle Grid (G)">
+   <button class="toolbar-btn active" id="btnGrid" title="Toggle Grid (G)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
    </button>
    <button class="toolbar-btn" id="btnSnap" title="Snap to Grid (S)">
@@ -473,9 +473,9 @@ areaGlobal.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() =>
 toolbar.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); toolbar.classList.add('visible'); });
 toolbar.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => toolbar.classList.remove('visible'), 300); });
 
-document.getElementById('btnZoomIn').addEventListener('click', () => { if (self.drawing && self.drawing.zoomIn) self.drawing.zoomIn(); });
-document.getElementById('btnZoomOut').addEventListener('click', () => { if (self.drawing && self.drawing.zoomOut) self.drawing.zoomOut(); });
-document.getElementById('btnGrid').addEventListener('click', (e) => { if (self.drawing && self.drawing.showGrid) { self.drawing.showGrid(!self.drawing.grid.showGrid); e.currentTarget.classList.toggle('active'); } });
+document.getElementById('btnZoomIn').addEventListener('click', () => {  self.zoomIn(); });
+document.getElementById('btnZoomOut').addEventListener('click', () => { self.zoomOut(); });
+document.getElementById('btnGrid').addEventListener('click', (e) => {  self.showGrid(!self.grid.showGrid); e.currentTarget.classList.toggle('active'); });
 document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
 
 document.getElementById('btnBringToFront').addEventListener('click', () => {
@@ -610,9 +610,12 @@ document.addEventListener('keydown', (e) => {
         }
         e.preventDefault();
     }
-    if (key === '+' || key === '=') { if (self.drawing && self.drawing.zoomIn) self.drawing.zoomIn(); }
-    if (key === '-') { if (self.drawing && self.drawing.zoomOut) self.drawing.zoomOut(); }
-    if (key === 'g') { if (self.drawing && self.drawing.showGrid) self.drawing.showGrid(!self.drawing.grid.showGrid); }
+    if (key === '+') { self.zoomIn(); }
+    if (key === '-') {  self.zoomOut(); }
+    if (key === 'g') {  self.showGrid(!self.grid.showGrid);             
+                        const gridBtn = document.getElementById('btnGrid');
+                        if (gridBtn) gridBtn.classList.toggle('active');
+                      }
 });
 
 
