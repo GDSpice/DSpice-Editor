@@ -195,6 +195,7 @@ function evtMouve(self) {
     
     
     self.resize.moveObject();
+  //if(self.selectedElement)
     showDescriptionElemSelectInPanel(self.selectedElement);
 
 
@@ -343,7 +344,7 @@ function fshapes(svg, setDrawing, width, height) {
                 else
 				{
                     self.svgElem.style.cursor = 'default';
-					showDescriptionElemSelectInPanel(null);
+					//showDescriptionElemSelectInPanel(null);
 				}
             }
 

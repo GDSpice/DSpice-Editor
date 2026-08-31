@@ -56,7 +56,7 @@ function pageSelect() {
   
     mtable.type = "page";
     propertiesData = JSON.parse(JSON.stringify(defaultData));
-  //  buildPanel();
+     buildPanel();
 
 }
 
@@ -658,8 +658,8 @@ function probeSelect() {
                 rows: [
                     { label: "Pos.x", type: "number", value: parseInt(mtable.select.getAttribute("x")) },
                     { label: "Pos.y", type: "number", value: parseInt(mtable.select.getAttribute("y")) },
-                    { label: "OP", type: "Button", value: 'Run ▶', setClick: 'ioProbe()' },
-                    { label: "Select signal", type: "Button", value: 'Show list', setClick: 'ioPosProbe()' }           
+                    { label: "OP", type: "Button", value: 'Run ▶', setClick: 'ioProbe' },
+                    { label: "Select signal", type: "Button", value: 'Show list', setClick: 'ioPosProbe' }           
                 ]
             }
         ]

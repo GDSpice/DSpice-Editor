@@ -102,7 +102,7 @@ function getElementListSpice() {
      list[0].voltages.push('V(' + node + ')');
     });
   }
-  var s=document.getElementsByName('part');
+  var s=document.getElementsByClassName('part');
   console.log("Found " + s.length + " elements with name 'modeltype'");
   for(var i=0; i<s.length; i++){
     var part=s[i];

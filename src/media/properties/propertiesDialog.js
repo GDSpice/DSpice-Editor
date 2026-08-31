@@ -308,13 +308,13 @@ function fpropertiesPanel(self) {
                         control.appendChild(btn);
                         break;
 
+                    
                     case 'Button':
                         var btn = document.createElement('input');
                         btn.type = 'button';
                         btn.className = 'prop-button prop-input';
                         btn.value = row.value;
-                        btn.addEventListener('click', () => { getDialog(row.value)});
-                      //  if (row.setClick) btn.setAttribute('onclick', row.setClick);
+                        btn.addEventListener('click', () => { getDialog(row.setClick)});
                         control.appendChild(btn);
 
                         break;
@@ -580,23 +580,25 @@ function updatePreview() {
     }
 }
 
-                // Double-click on drawing area to show properties
+// Double-click on drawing area to show properties
 
-
-
-function getDialog(value) {
-
-signalDialog = new fSignalDialog();
-
-// تعيين البيانات وإظهار الحوار
-signalDialog.initData(
-    [
-        { name: 'R1', voltages: ['V(R1)', 'V(R1,2)'], currents: ['I(R1)'] },
-        { name: 'C1', voltages: ['V(C1)'], currents: [] }
-    ],
-    'V(R1)',      // pre-selected value (optional)
-    true          // acUsed: إظهار/إخفاء Function selection
-);
-
-signalDialog.show()
+function getDialog(setClick) {
+    switch (setClick) {
+        case 'ioPosProbe':
+            var str = mtable.select.childNodes[2].textContent.split('=');
+            try {
+                if (!signalDialog) signalDialog = new fSignalDialog();
+                const result = getElementListSpice();
+                signalDialog.initData(result, str[0], false);
+                signalDialog.onSubmit = function(result) {
+                    mtable.select.childNodes[2].textContent = result.selectedSignal;
+                    findPosProb();
+                    probeSelect();
+                };
+                signalDialog.show();
+            } catch (error) {
+                console.log('Error', error.message);
+            }
+            break;
+    }
 }
