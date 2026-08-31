@@ -196,8 +196,11 @@ webviewPanel.onDidDispose(() => {
         const sh22Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'port.js'));
         const sh23Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'vbar.js'));
         const selectElementsJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'selectElements.js'));
-        const propertiesPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'propertiesPanel.js'));
+        const propertiesPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'properties', 'propertiesDialog.js'));
+        const propertiesBuilderJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'properties', 'propertiesBuilder.js'));
+        const propertiesRouterJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'properties', 'propertiesRouter.js'));
         const symbolsPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'symbolsPanel.js'));
+        const signalDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'signalDialog.js'));
         const drawingJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'drawing.js'));
         const plotlyJs =webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'pack','plotly-latest.min.js'));
         const htmlCodeCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'css', 'HTMLcode.css'));
@@ -242,9 +245,12 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${sh21Js}"></script>
     <script nonce="${nonce}" src="${sh22Js}"></script>
     <script nonce="${nonce}" src="${sh23Js}"></script>
-    <script nonce="${nonce}" src="${selectElementsJs}"></script>
     <script nonce="${nonce}" src="${propertiesPanelJs}"></script>
+    <script nonce="${nonce}" src="${selectElementsJs}"></script>
+    <script nonce="${nonce}" src="${propertiesBuilderJs}"></script>
+    <script nonce="${nonce}" src="${propertiesRouterJs}"></script>
     <script nonce="${nonce}" src="${symbolsPanelJs}"></script>
+    <script nonce="${nonce}" src="${signalDialogJs}"></script>
     <script nonce="${nonce}" src="${rulerJs}"></script>
     <script nonce="${nonce}" src="${gridJs}"></script>
     <script nonce="${nonce}" src="${bodyJs}"></script>

@@ -113,7 +113,7 @@ body.innerHTML = `
    <button class="toolbar-btn" id="btnRectangle" title="Rectangle (R)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
    </button>
-   <button class="toolbar-btn" id="btnEllipse" title="Ellipse (E)">
+   <button class="toolbar-btn" id="btnEllipse"  title="Ellipse (E)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="6"/></svg>
    </button>
    <button class="toolbar-btn" id="btnArc" title="Arc (A)">
@@ -477,6 +477,8 @@ document.getElementById('btnZoomIn').addEventListener('click', () => {  self.zoo
 document.getElementById('btnZoomOut').addEventListener('click', () => { self.zoomOut(); });
 document.getElementById('btnGrid').addEventListener('click', (e) => {  self.showGrid(!self.grid.showGrid); e.currentTarget.classList.toggle('active'); });
 document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
+document.getElementById('btnEllipse').addEventListener('click',  () =>{ addShape('ellipse'); });
+document.getElementById('btnAV').addEventListener('click',  () =>{ addShape('probe'); });
 
 document.getElementById('btnBringToFront').addEventListener('click', () => {
     if (self.drawing && self.drawing.bringToFront) self.drawing.bringToFront();
@@ -610,12 +612,14 @@ document.addEventListener('keydown', (e) => {
         }
         e.preventDefault();
     }
-    if (key === '+') { self.zoomIn(); }
+    if (key === '+') { self.zoomIn(); pageSelect()}
     if (key === '-') {  self.zoomOut(); }
     if (key === 'g') {  self.showGrid(!self.grid.showGrid);             
                         const gridBtn = document.getElementById('btnGrid');
                         if (gridBtn) gridBtn.classList.toggle('active');
                       }
+    if (key === 'e') { addShape('ellipse');}
+    if (key === 'z') { addShape('probe');}
 });
 
 

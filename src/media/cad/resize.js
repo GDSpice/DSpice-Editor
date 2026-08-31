@@ -213,8 +213,8 @@ function setPosSize(self) {
 
 
 	information(self);
-	//if(self.setElement)
-	//  getDescription(self,self.setElement);
+	if(self.setElement)
+	showDescriptionElemSelectInPanel(self.selectedElement);
 }
 
 //********************************************************Start_Sizing***********************************************************//

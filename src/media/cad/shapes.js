@@ -81,7 +81,7 @@ function evtDown(self) {
         break;
     }
 
-//	getDescription(self,self.selectedElement);
+showDescriptionElemSelectInPanel(self.selectedElement);
 
 }
 
@@ -192,10 +192,10 @@ function evtMouve(self) {
     }
 
     self.resize.setElement = self.selectedElement;
-  //  if(self.selectedElement && appDscription)
-	//  getDescription(self, self.selectedElement);
+    
     
     self.resize.moveObject();
+    showDescriptionElemSelectInPanel(self.selectedElement);
 
 
 	
@@ -308,7 +308,7 @@ function fshapes(svg, setDrawing, width, height) {
                 self.selectAll.yo = p.y;
                 self.selectAll.x = p.x;
                 self.selectAll.y = p.y;
-				//     getDescription(self,null);
+				showDescriptionElemSelectInPanel(null);
             }
 
          //   getListElementsAddToPageDescription();
@@ -343,7 +343,7 @@ function fshapes(svg, setDrawing, width, height) {
                 else
 				{
                     self.svgElem.style.cursor = 'default';
-					///vvv/getDescription(self,null);
+					showDescriptionElemSelectInPanel(null);
 				}
             }
 

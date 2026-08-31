@@ -313,8 +313,10 @@ function fpropertiesPanel(self) {
                         btn.type = 'button';
                         btn.className = 'prop-button prop-input';
                         btn.value = row.value;
-                        if (row.setClick) btn.setAttribute('onclick', row.setClick);
+                        btn.addEventListener('click', () => { getDialog(row.value)});
+                      //  if (row.setClick) btn.setAttribute('onclick', row.setClick);
                         control.appendChild(btn);
+
                         break;
 
                     case 'dropdown':
@@ -582,3 +584,19 @@ function updatePreview() {
 
 
 
+function getDialog(value) {
+
+signalDialog = new fSignalDialog();
+
+// تعيين البيانات وإظهار الحوار
+signalDialog.initData(
+    [
+        { name: 'R1', voltages: ['V(R1)', 'V(R1,2)'], currents: ['I(R1)'] },
+        { name: 'C1', voltages: ['V(C1)'], currents: [] }
+    ],
+    'V(R1)',      // pre-selected value (optional)
+    true          // acUsed: إظهار/إخفاء Function selection
+);
+
+signalDialog.show()
+}

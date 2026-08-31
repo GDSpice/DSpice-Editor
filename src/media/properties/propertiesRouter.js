@@ -15,6 +15,11 @@
 
 var mtable = {};
 function showDescriptionElemSelectInPanel(select) {
+
+        if(null){
+            pageSelect();
+            return;
+        }
  
         if (select) {
             mtable.select = select;
