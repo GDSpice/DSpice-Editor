@@ -2,6 +2,8 @@ const vscode = require('vscode');
 const SymbolsSync = require('./symbolsSync');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
+const os = require('os');
 
 class DSpiceEditorProvider {
     constructor(context, viewType, fileType) {
@@ -52,6 +54,72 @@ class DSpiceEditorProvider {
                     break;
 case 'ready':
     sendContent(document.getText());
+    break;
+
+case 'execOp':
+    try {
+        const spiceCode = message.code;
+        const tempDir = os.tmpdir();
+        const circuitFile = path.join(tempDir, `circuit_${Date.now()}.cir`);
+        
+        // كتابة ملف الدائرة
+        fs.writeFileSync(circuitFile, spiceCode, 'utf-8');
+        
+        let ngspicePath = path.join(this.context.extensionPath, 'ngspice', 'bin', 'ngspice_con.exe');
+        
+        const ngspiceProcess = spawn(ngspicePath, ['-b', circuitFile], {
+            cwd: tempDir,
+            env: { ...process.env, PATH: path.dirname(ngspicePath) + path.delimiter + process.env.PATH }
+        });
+        
+        let stdout = '';
+        let stderr = '';
+        
+        ngspiceProcess.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+        
+        ngspiceProcess.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+        
+        ngspiceProcess.on('close', (code) => {
+            // تنظيف الملف المؤقت
+            try { fs.unlinkSync(circuitFile); } catch (err) {}
+            
+            const results = parseSpiceResults(stdout, stderr);
+            
+            webviewPanel.webview.postMessage({
+                type: 'execOpResult',
+                success: true,
+                data: {
+                    success: code === 0,
+                    exitCode: code,
+                    stdout: stdout,
+                    stderr: stderr,
+                    results: results,
+                    rawOutput: stdout + '\n' + stderr
+                }
+            });
+        });
+        
+        ngspiceProcess.on('error', (error) => {
+            try { fs.unlinkSync(circuitFile); } catch (err) {}
+            
+            webviewPanel.webview.postMessage({
+                type: 'execOpResult',
+                success: false,
+                error: 'Failed to start ngspice: ' + error.message
+            });
+        });
+        
+    } catch (error) {
+        webviewPanel.webview.postMessage({
+            type: 'execOpResult',
+            success: false,
+            error: error.message
+        });
+    }
     break;
                 case 'updateDataSymbols':
                    const result =  await SymbolsSync.sync(document, this.context);
@@ -196,6 +264,7 @@ webviewPanel.onDidDispose(() => {
         const sh22Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'port.js'));
         const sh23Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'vbar.js'));
         const selectElementsJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'selectElements.js'));
+        const simulationJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'simulation.js'));
         const propertiesPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'properties', 'propertiesDialog.js'));
         const propertiesBuilderJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'properties', 'propertiesBuilder.js'));
         const propertiesRouterJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'properties', 'propertiesRouter.js'));
@@ -258,6 +327,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${shapesJs}"></script>
     <script nonce="${nonce}" src="${resizeJs}"></script>
     <script nonce="${nonce}" src="${listSymbolJs}"></script>
+    <script nonce="${nonce}" src="${simulationJs}"></script>
     <script nonce="${nonce}" src="${drawingJs}"></script>
     <script nonce="${nonce}" src="${plotlyJs}"></script>
     
@@ -306,6 +376,16 @@ webviewPanel.onDidDispose(() => {
         drawing._workspaceSymResolve(msg.contents);
         drawing._workspaceSymResolve = null;
     }
+} else if (msg.type === 'execOpResult') {
+    if (typeof drawing !== 'undefined' && drawing._execOpResolve) {
+        if (msg.success) {
+            drawing._execOpResolve(msg.data);
+        } else {
+            drawing._execOpReject(msg.error);
+        }
+        drawing._execOpResolve = null;
+        drawing._execOpReject = null;
+    }
 }
            
         });
@@ -325,6 +405,81 @@ function getNonce() {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
     return text;
+}
+
+function parseSpiceResults(stdout, stderr) {
+    const results = {
+        results: [],
+        errors: [],
+        warnings: []
+    };
+
+    const combinedOutput = stdout + '\n' + stderr;
+    const lines = combinedOutput.split('\n');
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        if (trimmed.toLowerCase().includes('error') || trimmed.toLowerCase().includes('fatal')) {
+            results.errors.push(trimmed);
+        }
+        if (trimmed.toLowerCase().includes('warning')) {
+            results.warnings.push(trimmed);
+        }
+    }
+
+    const allText = combinedOutput;
+
+    // v(node) = value  أو  i(component) = value
+    const viPattern = /([vi])\(([a-z0-9_]+)\)\s*=\s*([+-]?\d+\.?\d*[eE]?[+-]?\d*)/gi;
+    let match;
+    while ((match = viPattern.exec(allText)) !== null) {
+        const type = match[1].toLowerCase();
+        const name = match[2].trim();
+        const value = parseFloat(match[3]);
+        results.results.push({
+            name: `${type}(${name})`,
+            value: value,
+            formatted: formatValue(value)
+        });
+    }
+
+    // جدول: node_name   value
+    const tablePattern = /^\s*([a-z][a-z0-9_]*)\s+([+-]?\d+\.\d+[eE][+-]?\d+)\s*$/gim;
+    while ((match = tablePattern.exec(allText)) !== null) {
+        const name = match[1].trim();
+        const value = parseFloat(match[2]);
+        if (!results.results.find(r => r.name === name)) {
+            results.results.push({ name, value, formatted: formatValue(value) });
+        }
+    }
+
+    // print output
+    const printPattern = /^\s*([a-z][a-z0-9_]*)\s*=\s*([+-]?\d+\.?\d*[eE]?[+-]?\d*)\s*$/gim;
+    while ((match = printPattern.exec(allText)) !== null) {
+        const name = match[1].trim();
+        const value = parseFloat(match[2]);
+        if (!results.results.find(r => r.name === name)) {
+            results.results.push({ name, value, formatted: formatValue(value) });
+        }
+    }
+
+    return results;
+}
+
+function formatValue(value) {
+    const absVal = Math.abs(value);
+    if (absVal === 0) return '0';
+    if (absVal >= 1e9) return (value / 1e9).toFixed(3) + ' G';
+    if (absVal >= 1e6) return (value / 1e6).toFixed(3) + ' M';
+    if (absVal >= 1e3) return (value / 1e3).toFixed(3) + ' k';
+    if (absVal >= 1) return value.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+    if (absVal >= 1e-3) return (value * 1e3).toFixed(3) + ' m';
+    if (absVal >= 1e-6) return (value * 1e6).toFixed(3) + ' µ';
+    if (absVal >= 1e-9) return (value * 1e9).toFixed(3) + ' n';
+    if (absVal >= 1e-12) return (value * 1e12).toFixed(3) + ' p';
+    return value.toExponential(3);
 }
 
 module.exports = DSpiceEditorProvider;

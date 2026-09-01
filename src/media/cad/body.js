@@ -479,6 +479,7 @@ document.getElementById('btnGrid').addEventListener('click', (e) => {  self.show
 document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
 document.getElementById('btnEllipse').addEventListener('click',  () =>{ addShape('ellipse'); });
 document.getElementById('btnAV').addEventListener('click',  () =>{ addShape('probe'); });
+document.getElementById('btnRunAV').addEventListener('click',  () =>{ opAnalysis(); });
 
 document.getElementById('btnBringToFront').addEventListener('click', () => {
     if (self.drawing && self.drawing.bringToFront) self.drawing.bringToFront();

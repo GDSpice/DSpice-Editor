@@ -203,7 +203,7 @@ function getListParams(part) {
 
 function netList() {
 
-    var parts = document.getElementsByName('part');
+    var parts = document.getElementsByClassName('part');
     var list = [];
     for (var i = 0; i < parts.length; i++)
         if (!strToBool(parts[i].firstChild.getAttribute('std'))) {
@@ -492,7 +492,7 @@ function getNewStruct(name,nodes,index,netListData,color)
     var nodes=getNetRefs();
     var netListData = netList();
 
-    var probes = document.getElementsByName('probe');
+    var probes = document.getElementsByClassName('probe');
     var list = [];
     for (var i = 0; i < probes.length; i++){
             list.push({
@@ -520,7 +520,7 @@ function getNewStruct(name,nodes,index,netListData,color)
 
    var cmd=`.op\n`;
   
-   var code = `*\n\n.include "${libarayPath}"\n\n`;
+   var code = '*\n*\n';//`*\n\n.include "${libarayPath}"\n\n`;
 
   netListData.forEach(el => {
     code += `${el.ref}   ${el.pins.join(' ')}   ${el.params.join('  ')}\n`;

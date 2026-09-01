@@ -241,6 +241,22 @@ self.saveData=function(data){
             }
 }
 
+self.execOp = function(spiceCode) {
+    return new Promise((resolve, reject) => {
+        self._execOpResolve = resolve;
+        self._execOpReject = reject;
+        
+        if (typeof vscode !== 'undefined') {
+            vscode.postMessage({
+                type: 'execOp',
+                code: spiceCode
+            });
+        } else {
+            reject('vscode API not available');
+        }
+    });
+};
+
 
          // Create properties panel
          propertiesPanel = new fpropertiesPanel(self);
