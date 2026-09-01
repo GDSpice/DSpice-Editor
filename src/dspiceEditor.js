@@ -274,6 +274,13 @@ webviewPanel.onDidDispose(() => {
         const plotlyJs =webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'pack','plotly-latest.min.js'));
         const htmlCodeCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'css', 'HTMLcode.css'));
 
+
+        // Define the library path for ngspice
+        const libraryPath = path.join(this.context.extensionPath, 'lib', 'library.lib');
+        const extensionPath = this.context.extensionPath;
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        const workspacePath = workspaceFolder ? workspaceFolder.uri.fsPath : '';
+
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -286,6 +293,13 @@ webviewPanel.onDidDispose(() => {
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: verdana; }
         #content { width: 100%; height: 100%; position: relative; }
     </style>
+
+    <script nonce="${nonce}">
+       //define global variables for extension and workspace paths
+        window.extensionPath = ${JSON.stringify(extensionPath)};
+        window.libraryPath = ${JSON.stringify(libraryPath)};
+        window.workspacePath = ${JSON.stringify(workspacePath)}; 
+    </script>
 </head>
 <body>
     <div id="content"></div>

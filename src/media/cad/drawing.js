@@ -19,6 +19,12 @@ var self = this;
         destination: "local",
         description: {webPage:'',info:''}
     };
+
+// Display the extension and workspace paths in the console for debugging
+ self.extensionPath = window.extensionPath || '';
+ self.libraryPath = window.libraryPath || '';
+ self.workspacePath = window.workspacePath || ''; 
+
  //*************Creat body of drawing************************************************************//
  createBody(self);
  this.grid = new fgrid("svg", 1800, 1800);
