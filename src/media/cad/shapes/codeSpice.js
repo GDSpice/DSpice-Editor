@@ -520,7 +520,7 @@ function getNewStruct(name,nodes,index,netListData,color)
 
    var cmd=`.op\n`;
   
-   var code = '*\n*\n';//`*\n\n.include "${libarayPath}"\n\n`;
+   var code = `*\n\n.include "${drawing.libraryPath}"\n\n`;
 
   netListData.forEach(el => {
     code += `${el.ref}   ${el.pins.join(' ')}   ${el.params.join('  ')}\n`;

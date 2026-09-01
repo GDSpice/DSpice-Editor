@@ -11,6 +11,15 @@
     "onCustomEditor:dspiceEditor.dcsEditor",
     "onCustomEditor:dspiceEditor.symEditor"
   ],
+  "files": [
+    "extension.js",
+    "dspiceEditor.js",
+    "symbolsSync.js",
+    "data.json",
+    "media/**/*",
+    "symbols/**/*",
+    "ngspice/**/*"
+  ],
   "contributes": {
     "customEditors": [
       {
