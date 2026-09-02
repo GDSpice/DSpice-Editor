@@ -271,6 +271,7 @@ webviewPanel.onDidDispose(() => {
         const symbolsPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'symbolsPanel.js'));
         const signalDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'signalDialog.js'));
         const drawingJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'drawing.js'));
+        const stdJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'std.js'));
         const plotlyJs =webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'pack','plotly-latest.min.js'));
         const htmlCodeCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'css', 'HTMLcode.css'));
 
@@ -343,6 +344,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${listSymbolJs}"></script>
     <script nonce="${nonce}" src="${simulationJs}"></script>
     <script nonce="${nonce}" src="${drawingJs}"></script>
+    <script nonce="${nonce}" src="${stdJs}"></script>
     <script nonce="${nonce}" src="${plotlyJs}"></script>
     
 

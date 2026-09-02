@@ -480,6 +480,7 @@ document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentT
 document.getElementById('btnEllipse').addEventListener('click',  () =>{ addShape('ellipse'); });
 document.getElementById('btnAV').addEventListener('click',  () =>{ addShape('probe'); });
 document.getElementById('btnRunAV').addEventListener('click',  () =>{ opAnalysis(); });
+document.getElementById('btnPlaceComponent').addEventListener('click',  () =>{ showSymbolPanel() });
 
 document.getElementById('btnBringToFront').addEventListener('click', () => {
     if (self.drawing && self.drawing.bringToFront) self.drawing.bringToFront();
@@ -636,3 +637,25 @@ self.updateButtonsState = function() {
     updateButtonsState(self);
 };
 }
+
+
+
+async function avav(){
+    
+    var svgs = await drawing.redSymFilesFromWorkSpace();
+// النتيجة: ["<svg>...</svg>", "<svg>...</svg>", ...]
+
+console.log('Total .sym files loaded:', svgs.length);
+console.log(svgs[1]); // محتوى أول ملف
+}
+
+async function showSymbolPanel() {
+         drawing.updateDataSymbols();
+          /* if (typeof vscode !== 'undefined') {
+        vscode.postMessage({ type: 'updateDataSymbols' });
+          }*/
+      if (typeof symbolsPanel !== 'undefined') {
+            symbolsPanel.toggle(); // يفتح إذا كان مغلقاً، ويغلق إذا كان مفتوحاً
+        }
+      
+  }

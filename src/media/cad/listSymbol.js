@@ -243,7 +243,7 @@ function addListSymbToPageLibs(list){
   
   listSymbols=list;
   
-  // شبكة بعمودين + إزالة تنسيقات القائمة الافتراضية
+
   var rrr='<ul id="buttons" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; list-style: none; padding: 5px; margin: 0;">';
   
   for(var i=0; i < list.length; i++){
@@ -254,18 +254,31 @@ function addListSymbToPageLibs(list){
     var h = parseInt(newElement.getAttribute("height"));
     var title = setSizeStr(newElement.firstChild.getAttribute("symbolname"));
 
-    // كل عنصر مربع متساوي: aspect-ratio: 1/1
-    // SVG بعرض وارتفاع 100% ليملأ الإطار بالكامل
+
     rrr += "<li style='border:1px solid #ccc; background:#f9f9f9; border-radius:3px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 4px;'>"
-         + "<button class='button_lib' onclick='addSymToPage("+i+")' style='width:100%; height:75%; padding:0; background:transparent; border:none; cursor:pointer; display: flex; align-items: center; justify-content: center;'>"
+         + "<button class='button_lib' data-index='" + i + "' style='width:100%; height:75%; padding:0; background:transparent; border:none; cursor:pointer; display: flex; align-items: center; justify-content: center;'>"
          + "<svg width='70%' height='70%' viewBox='0 0 " + w + " " + h + "' preserveAspectRatio='xMidYMid meet' style='max-width:100%; max-height:100%;'>" + newElement.innerHTML + "</svg>"
          + "</button>"
-         + "<p style='margin:3px 0 0 0; font-size:10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%; text-align: center;'><a href='#' onclick='addSymToPage("+i+")'>" + title + "</a></p>"
+         + "<p style='margin:3px 0 0 0; font-size:10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%; text-align: center;'><a href='#' data-index='" + i + "'>" + title + "</a></p>"
          + "</li>";
   }
   
   rrr += '</ul>';
   document.getElementById("componentsPanel").innerHTML = rrr;
+  const listContainer = document.getElementById("componentsPanel"); 
+  listContainer.addEventListener('click', function(e) {
+
+    const btn = e.target.closest('.button_lib');
+    const link = e.target.closest('a');
+    if (btn) {
+        const index = parseInt(btn.getAttribute('data-index'));
+        addSymToPage(index);
+    } else if (link) {
+        e.preventDefault();
+        const index = parseInt(link.getAttribute('data-index'));
+        addSymToPage(index);
+    }
+ });
 
   var collection = document.getElementsByName("ppin");
   for (var i = 0; i < collection.length; i++){
@@ -326,39 +339,38 @@ function addSymToPage(index)
         
 }
 
+
+
 async function changeListSym(){
     var index=parseInt(document.getElementById('selectLibs').value);
+    selctedSymbolIndex = index; // update the global variable to reflect the selected index
     const files_ = await drawing.redSymFiles(index);
     addListSymbToPageLibs(files_);
     
 
 }
 
-async function updateLibrary() {
+async function updateSymbolsPanel() {
  //  getPageLibDesc();
+   if(selctedSymbolIndex === -1 || selctedSymbolIndex >= drawing.dataSyms['dirs'].length) {
+     selctedSymbolIndex = 0; // start with the first library if none is selected
+   }
    const data = drawing.dataSyms;
-   const libraryName=data['dirs'][0];
+   const libraryName=data['dirs'][selctedSymbolIndex ];
  //  const files=data[libraryName];
-   const files_ = await drawing.redSymFiles(1);
+   const files_ = await drawing.redSymFiles(selctedSymbolIndex);
    addItemsToPageLibs(data['dirs']);
    addListSymbToPageLibs(files_);
 
    
     const select = document.getElementById('selectLibs');
+    select.selectedIndex = selctedSymbolIndex; // set the selected index of the dropdown
     
     select.addEventListener('change', function() {
-        // إذا كانت الدالة الأصلية تستخدم this
-       // changeListSym.call(this);
-        
-        // أو إذا كانت الدالة لا تحتاج this
          changeListSym();
     });
 
    return true;
 }
 
-
-
-//updateLibrary();
-
-
+var selctedSymbolIndex = -1;

@@ -4,7 +4,8 @@
         "Source",
         "Semiconductor",
         "Digital",
-        "Amplifier"
+        "Amplifier",
+        "symbols"
     ],
     "Amplifier": [
         "TL084.sym",

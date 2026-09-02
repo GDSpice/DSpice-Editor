@@ -175,12 +175,13 @@ self.getDataSym = function(data) {
         self.dataSyms = data;
         console.log('✅ dataSyms updated:', self.dataSyms);
         
-        // إعادة تحميل لوحة الرموز إذا كانت موجودة
-        if (typeof symbolsPanel !== 'undefined' && symbolsPanel.refresh) {
-            symbolsPanel.refresh();
+        // refresh the symbols panel if it's already open 
+        if (typeof symbolsPanel !== 'undefined') {
+            updateSymbolsPanel();
         }
         return self.dataSyms;
     }
+    
     console.warn('⚠️ Invalid or missing data in getDataSym');
     return null;
 };
