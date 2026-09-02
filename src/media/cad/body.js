@@ -496,14 +496,13 @@ document.getElementById('btnSendBackward').addEventListener('click', () => {
 });
 
 const toolButtons = [
-  'btnSelect', 'btnPan', 'btnWire', 'btnBus', 'btnPlaceComponent', 'btnText',
+  'btnSelect', 'btnPan', 'btnWire', 'btnBus', 'btnText',
   'btnRectangle', 'btnEllipse', 'btnArc', 'btnPolyline', 'btnPolygon',
   'btnVCC', 'btnPort', 'btnGND',
   'btnPin', 'btnReference', 'btnParameter',
   'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
   'btnModel', 'btnCommand',
   'btnHTML', 'btnAnalysis', 'btnAV',
-  'btnRunAnalysis', 'btnRunAV',
   'btnSubBlock'
 ];
 
@@ -606,14 +605,7 @@ document.addEventListener('keydown', (e) => {
         }
         e.preventDefault();
     }
-    if (e.key === 'F10') {
-        if (isButtonEnabled('btnRunAV')) {
-            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-            document.getElementById('btnRunAV').classList.add('active');
-            if (self.drawing && self.drawing.setTool) self.drawing.setTool('runAV');
-        }
-        e.preventDefault();
-    }
+    if (e.key === 'F10') { opAnalysis(); }
     if (key === '+') { self.zoomIn(); pageSelect()}
     if (key === '-') {  self.zoomOut(); }
     if (key === 'g') {  self.showGrid(!self.grid.showGrid);             
@@ -622,6 +614,7 @@ document.addEventListener('keydown', (e) => {
                       }
     if (key === 'e') { addShape('ellipse');}
     if (key === 'z') { addShape('probe');}
+    if (key === 'p') { showSymbolPanel();}
 });
 
 
@@ -651,11 +644,9 @@ console.log(svgs[1]); // محتوى أول ملف
 
 async function showSymbolPanel() {
          drawing.updateDataSymbols();
-          /* if (typeof vscode !== 'undefined') {
-        vscode.postMessage({ type: 'updateDataSymbols' });
-          }*/
+
       if (typeof symbolsPanel !== 'undefined') {
-            symbolsPanel.toggle(); // يفتح إذا كان مغلقاً، ويغلق إذا كان مفتوحاً
+            symbolsPanel.show(); // if symbolsPanel is already defined, toggle its visibility
         }
       
   }
