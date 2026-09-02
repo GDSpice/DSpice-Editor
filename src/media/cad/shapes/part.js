@@ -710,7 +710,7 @@ function getListPins(part) {
 }
 
 function updateRefParts() {
-    var s = document.getElementsByName('ref');
+    var s = document.querySelectorAll('[name="ref"]');
     for (var i = 0; i < s.length; i++) {
         //if(s[i].getAttribute("class")=='var'){
         var parElem = s[i].parentElement;
@@ -738,7 +738,7 @@ function updateLableOfParts(){
 }
 
 function addName(part) {
-    var s = document.getElementsByName('part');
+    var s = document.getElementsByClassName('part');
     var x = part.firstChild.getAttribute("reference");
     var model=part.firstChild.getAttribute("modelname");
     

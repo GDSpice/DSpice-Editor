@@ -330,7 +330,7 @@ function addSymToPage(index)
 	var dir=sel.options[sel.selectedIndex].getAttribute('dir');
 
 	if(listSymbols.length>index)
-	  addPart(listSymbols[index].sym,dir,true,listSymbols[index].name);
+	  addPart(listSymbols[index],dir,true,listSymbols[index].name);
 
     var collection = document.getElementsByName("pin");
 
