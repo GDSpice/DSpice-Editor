@@ -36,6 +36,12 @@ class DSpiceEditorProvider {
 
         DSpiceEditorProvider.activeWebview = webviewPanel.webview;
 
+        webviewPanel.onDidChangeViewState(e => {
+    if (e.webviewPanel.active) {
+        DSpiceEditorProvider.activeWebview = webviewPanel.webview;
+    }
+});
+
         // ✅ إرسال المحتوى الحالي (أول تحميل أو عند Undo/Redo)
         const sendContent = (text) => {
             webviewPanel.webview.postMessage({
@@ -55,6 +61,11 @@ class DSpiceEditorProvider {
 case 'ready':
     sendContent(document.getText());
     break;
+
+                case 'copyData':
+                    console.log('Copy data received from webview:', message.data);
+                    await vscode.env.clipboard.writeText(message.data);
+                    break;
 
 case 'execOp':
     try {
@@ -403,12 +414,23 @@ webviewPanel.onDidDispose(() => {
         drawing._execOpReject = null;
     }
 }
+// Execute copy, cut, and paste commands
+            if (msg.type === 'execCopy') {
+                 drawing.copy();
+            }
+            if (msg.type === 'execCut') {
+                 drawing.cut();
+            }
+            if (msg.type === 'execPaste') {
+                 drawing.paste(msg.data);
+            }
            
         });
 
         // إشعار VS Code بأن الـ Webview جاهز
         vscode.postMessage({ type: 'ready' });
     </script>
+    
 </body>
 </html>`;
     }

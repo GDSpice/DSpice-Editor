@@ -11,7 +11,7 @@ var self = this;
  self.selectPart= false;
  self.selectAnalysis= false;
  self.dataSyms = {}; 
- 
+ window.console.log('fdrawing initialized with div:', div);
  self.symbol = {
         name: "New Symbol",
         reference: "X",
@@ -160,6 +160,99 @@ this.resize.grid=this.grid;
 
 
  }
+
+//*************Creat copy and paste function******************//
+    self.copy = function () {
+    var copyList = [];
+
+        if (self.shapes.lsg.elms.length > 0) {
+            copyList = [];
+            for (var i = 0; i < self.shapes.lsg.elms.length; i++) {
+                copyList.push({
+                    node: self.shapes.lsg.elms[i].outerHTML
+                });
+            }
+        } else if (self.resize.setElement) {
+            copyList = [];
+            copyList.push({
+                node: self.resize.setElement.outerHTML
+            });
+        }
+    
+    var data_ = { pageType: self.pageType, copyList: copyList };
+    var clipboardData = JSON.stringify(data_);
+
+    if (typeof vscode !== 'undefined') {
+        vscode.postMessage({ type: 'copyData', data: clipboardData });
+    }
+
+
+    
+};
+
+
+self.paste = function (clipboardText) {
+    try {
+        
+        let data = JSON.parse(clipboardText);
+
+        if (!data.copyList?.length) {
+            // "لا توجد عناصر للصق";
+            return;
+        }
+
+        if (data.pageType !== self.pageType) {
+           // the data is from a different page type, ignore the paste operation;
+            return;
+        }
+
+        const svgContainer = document.getElementById("sym");
+        self.copyList = [];
+        self.copyLength = data.copyList.length;
+
+        for (const item of data.copyList) {
+            if (!item.node) continue;
+
+            // إنشاء حاوية مؤقتة في نفس مساحة اسم SVG
+            const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            tempSvg.innerHTML = item.node;
+            
+            // نقل جميع العناصر
+            while (tempSvg.firstChild) {
+                const node = tempSvg.firstChild;
+                svgContainer.appendChild(node);
+                self.copyData=true;
+            }
+        }
+
+        deletMultiRef();
+        selectPast(self);
+        self.saveData('Paste ');
+        
+    } catch (err) {
+        console.error(err);
+       
+    }
+};
+
+    self.cut = function () {
+        self.copy();
+        if (self.shapes.lsg.elms.length > 0) {
+            for (var i = 0; i < self.shapes.lsg.elms.length; i++)
+                self.shapes.lsg.elms[i].remove();
+            clearSelectElms(self.shapes);
+            self.saveData('Cut ');
+        } else if (self.resize.setElement) {
+            self.resize.setElement.remove();
+            self.resize.deletEllipse();
+            self.saveData('Cut ');
+        }
+
+
+
+    };
+
+//*****update data symbols from extension.js to drawing.js*********//
 //***** */
  self.updateDataSymbols = function () {
     console.log(' Requesting symbols data update...');
