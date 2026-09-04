@@ -23,9 +23,10 @@ function addShape(nameShape) {
 function elemNotByDown() {
     switch (drawing.shapes.design.name) {
     case 'probe':
-	      drawing.shapes.addElement(drawing.shapes.design.name);
+	        drawing.shapes.addElement(drawing.shapes.design.name);
 		    drawing.resize.setElement = drawing.shapes.svgSym.lastChild;
 		    drawing.shapes.design.start = true;
+
 		    break;
 	case 'analysis':
 	case 'oscilloscope':

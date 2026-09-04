@@ -39,7 +39,7 @@ function fsymbolsPanel(self) {
     font-size: var(--vscode-font-size, 12px);
     color: var(--vscode-editor-foreground, #333);
     /* Fixed overall height */
-    height: 500px;
+    height: 540px;
     max-height: 80vh;
     /* Use flex column layout */
     display: none;

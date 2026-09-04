@@ -478,6 +478,10 @@ document.getElementById('btnZoomOut').addEventListener('click', () => { self.zoo
 document.getElementById('btnGrid').addEventListener('click', (e) => {  self.showGrid(!self.grid.showGrid); e.currentTarget.classList.toggle('active'); });
 document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
 document.getElementById('btnEllipse').addEventListener('click',  () =>{ addShape('ellipse'); });
+document.getElementById('btnRectangle').addEventListener('click',  () =>{ addShape('rect'); });
+document.getElementById('btnPolyline').addEventListener('click',  () =>{ addShape('polyline'); });
+document.getElementById('btnPolygon').addEventListener('click',  () =>{ addShape('polygon'); });
+document.getElementById('btnArc').addEventListener('click',  () =>{ addShape('arc'); });
 document.getElementById('btnAV').addEventListener('click',  () =>{ addShape('probe'); });
 document.getElementById('btnRunAV').addEventListener('click',  () =>{ opAnalysis(); });
 document.getElementById('btnPlaceComponent').addEventListener('click',  () =>{ showSymbolPanel() });
@@ -524,6 +528,9 @@ function isButtonEnabled(id) {
     return btn && !btn.classList.contains('hidden-btn') && !btn.classList.contains('disabled-btn');
 }
 
+
+    
+
 toolButtons.forEach((id, index) => {
     document.getElementById(id).addEventListener('click', () => {
         if (!isButtonEnabled(id)) return;
@@ -533,20 +540,27 @@ toolButtons.forEach((id, index) => {
     });
 });
 
+
+
 document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     const key = e.key.toLowerCase();
     const isCtrl = e.ctrlKey || e.metaKey;
     const isShift = e.shiftKey;
     const keyMap = { 
-      'v': 0, 'h': 1, 'w': 2, 'b': 3, 'p': 4, 't': 5,
-      'r': 6, 'e': 7, 'a': 8, 'l': 9, 'y': 10,
-      'u': 11, 'o': 12, 'n': 13,
-      'i': 14, 'k': 15, 'j': 16,
-      'f': 17,
-      'd': 20, 'q': 21,
-      'm': 22, 'x': 23, 'z': 24,
-      'c': 27
+       'a': 'btnArc', 
+       'w': 'btnWire', 
+       't': 'btnText',
+       'e': 'btnEllipse', 
+       'r': 'btnRectangle', 
+       'l': 'btnPolyline', 
+       'y': 'btnPolygon', 
+       'u': 'btnVCC', 
+       'n': 'btnGND', 
+       'o': 'btnPort', 
+       'i': 'btnPin', 
+       'k': 'btnReference',
+      'j': 'btnParameter' 
     };
     
     if (isCtrl && isShift && key === ']') {
@@ -590,7 +604,7 @@ document.addEventListener('keydown', (e) => {
     }
     
     if (keyMap[key] !== undefined && !isShift) {
-        const targetId = toolButtons[keyMap[key]];
+        const targetId = keyMap[key];
         if (isButtonEnabled(targetId)) {
             toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
             document.getElementById(targetId).classList.add('active');
@@ -613,8 +627,12 @@ document.addEventListener('keydown', (e) => {
                         if (gridBtn) gridBtn.classList.toggle('active');
                       }
     if (key === 'e') { addShape('ellipse');}
-    if (key === 'z') { addShape('probe');}
-    if (key === 'p') { showSymbolPanel();}
+    if (key === 'a') { addShape('arc');}
+    if (key === 'l') { addShape('polyline');}
+    if (key === 'y') { addShape('polygon');}
+    if (key === 'r') { addShape('rect');}
+    if (key === 'z') { if(drawing.pageType == 'sym') return;  addShape('probe');}
+    if (key === 'p') { if(drawing.pageType == 'sym') return; showSymbolPanel();}
 });
 
 
@@ -629,6 +647,12 @@ self.updateToolbar = function() {
 self.updateButtonsState = function() {
     updateButtonsState(self);
 };
+
+self.activeBtnSelect = function(){
+    toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
+    const selectBtn = document.getElementById('btnSelect');
+    if (selectBtn) selectBtn.classList.add('active');
+}
 }
 
 

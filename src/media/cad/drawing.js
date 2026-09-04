@@ -151,6 +151,7 @@ this.resize.grid=this.grid;
          
     }  else { 
         self.setSymbolDescription();
+        self.getSymbolDescription();
 	    plotsOpenDataLayoutInDiv();
         modifiedClassText();
         updateHtmlCode();

@@ -1,7 +1,7 @@
 {
-  "name": "dspice-editor",
-  "displayName": "DSpice Editor",
-  "version": "0.2.0",
+  "name": "DSpice",
+  "displayName": "DSpice",
+  "version": "0.1.0",
   "publisher": "dspice",
   "engines": {
     "vscode": "^1.74.0"

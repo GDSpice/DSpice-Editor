@@ -741,6 +741,8 @@ function fshapes(svg, setDrawing, width, height) {
 
         }
 
+        drawing.activeBtnSelect();
+
     }
 
     self.getPosCriticalElement = function (evtTarget) {
