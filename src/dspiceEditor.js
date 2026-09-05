@@ -42,7 +42,7 @@ class DSpiceEditorProvider {
     }
 });
 
-        // ✅ إرسال المحتوى الحالي (أول تحميل أو عند Undo/Redo)
+        // Send the current content (on initial load or Undo/Redo)
         const sendContent = (text) => {
             webviewPanel.webview.postMessage({
                 type: 'update',
@@ -51,7 +51,22 @@ class DSpiceEditorProvider {
             });
         };
 
-        // ✅ عند استلام "ready" من الـ Webview
+        // Function to extract the filename without its path or extension
+        function getFileName() {
+            return path.basename(document.fileName, path.extname(document.fileName));
+        }
+
+        // Function to send the filename to the Webview
+        const sendFileName = () => {
+            webviewPanel.webview.postMessage({
+                type: 'setFileName',
+                fileName: getFileName()
+            });
+        };
+
+
+
+        // When "ready" is received from the Webview
         const msgDisposable = webviewPanel.webview.onDidReceiveMessage(async message => {
             switch (message.type) {
                 case 'contentChanged':
@@ -60,6 +75,7 @@ class DSpiceEditorProvider {
                     break;
 case 'ready':
     sendContent(document.getText());
+    sendFileName(); //Send the filename when the Webview is ready
     break;
 
                 case 'copyData':
@@ -424,6 +440,11 @@ webviewPanel.onDidDispose(() => {
             if (msg.type === 'execPaste') {
                  drawing.paste(msg.data);
             }
+// Receive the file name from VS Code and update drawing.fileName
+    if (msg.type === 'setFileName') {
+        drawing.fileName = msg.fileName;
+        console.log('File name updated to:', drawing.fileName);
+    }
            
         });
 
