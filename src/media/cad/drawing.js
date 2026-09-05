@@ -359,6 +359,16 @@ self.execOp = function(spiceCode) {
 };
 
 
+         // Get List Models Dialog
+         self.getListModel = function(previousResult, onSubmit, onCancel) {
+             if (typeof listModelsDialog === 'undefined' || !listModelsDialog) {
+                 listModelsDialog = new fListModelsDialog(self);
+             }
+             listModelsDialog.setCallbacks(onSubmit, onCancel);
+             listModelsDialog.initData(previousResult);
+             listModelsDialog.show();
+         };
+
          // Create properties panel
          propertiesPanel = new fpropertiesPanel(self);
 
@@ -385,4 +395,7 @@ resizeCanvas();
 return d;
 }
 drawing=creatPage("content")
+
+
+
 

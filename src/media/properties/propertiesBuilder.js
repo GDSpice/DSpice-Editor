@@ -513,8 +513,8 @@ function modelSelected() {
                     { label: 'Pos.x', type: "number", value: parseInt(mtable.select.getAttribute("x")) },
                     { label: 'Pos.y', type: "number", value: parseInt(mtable.select.getAttribute("y")) },
                     { label: 'Fill', type: "color", value: rgb2hex(mtable.select.style.fill), color: rgb2hex(mtable.select.style.fill) },
-                    { label: 'Model.name', type: "dropdownedit", value: mtable.select.getAttribute("modelname"),options: mtable.select.getAttribute("modellist").split(',')},
-                    { label: 'Model.list', type: "Button", value: 'Add similar', setClick:'openEditorListModels()' },
+                    { label: 'Model.name', type: "text", value: mtable.select.getAttribute("modelname")},
+                    { label: 'Model.other', type: "Button", value: 'Find similar model', setClick:'openEditorListModels' },
                 ]
             }
         ]

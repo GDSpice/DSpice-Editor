@@ -1,5 +1,6 @@
 const vscode = require('vscode');
 const SymbolsSync = require('./symbolsSync');
+const LibrarySync = require('./librarySync');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
@@ -79,9 +80,45 @@ case 'ready':
     break;
 
                 case 'copyData':
-                    console.log('Copy data received from webview:', message.data);
                     await vscode.env.clipboard.writeText(message.data);
                     break;
+case 'getLibraryFiles':
+    try {
+        const libFiles = LibrarySync.getLibraryFiles(this.context.extensionPath);
+        webviewPanel.webview.postMessage({
+            type: 'libraryFilesResult',
+            libFiles: libFiles
+        });
+    } catch (err) {
+        webviewPanel.webview.postMessage({
+            type: 'libraryFilesResult',
+            libFiles: [],
+            error: err.message
+        });
+    }
+    break;
+
+case 'getSpiceModels':
+    try {
+        const filePath = message.filePath;
+        const result = LibrarySync.getSpiceModels(filePath);
+        webviewPanel.webview.postMessage({
+            type: 'spiceModelsResult',
+            rawContent: result.rawContent,
+            models: result.models,
+            subckts: result.subckts,
+            error: result.error || null
+        });
+    } catch (err) {
+        webviewPanel.webview.postMessage({
+            type: 'spiceModelsResult',
+            rawContent: '',
+            models: [],
+            subckts: [],
+            error: err.message
+        });
+    }
+    break;
 
 case 'execOp':
     try {
@@ -89,7 +126,7 @@ case 'execOp':
         const tempDir = os.tmpdir();
         const circuitFile = path.join(tempDir, `circuit_${Date.now()}.cir`);
         
-        // كتابة ملف الدائرة
+        // write the spice code to a temporary file
         fs.writeFileSync(circuitFile, spiceCode, 'utf-8');
         
         let ngspicePath = path.join(this.context.extensionPath, 'ngspice', 'bin', 'ngspice_con.exe');
@@ -111,7 +148,7 @@ case 'execOp':
         });
         
         ngspiceProcess.on('close', (code) => {
-            // تنظيف الملف المؤقت
+            // delete the temporary circuit file after execution
             try { fs.unlinkSync(circuitFile); } catch (err) {}
             
             const results = parseSpiceResults(stdout, stderr);
@@ -167,7 +204,6 @@ case 'execOp':
     if (message.files && Array.isArray(message.files)) {
         for (const file of message.files) {
             const filePath = path.join(targetDir, file);
-            console.log(filePath);
             try {
                 const data = fs.readFileSync(filePath, 'utf8');
                 contents.push(data);
@@ -177,7 +213,7 @@ case 'execOp':
             }
         }
     }
-    console.log(contents);
+    
     webviewPanel.webview.postMessage({
         type: 'symFilesContent',
         contents: contents
@@ -191,7 +227,7 @@ case 'execOp':
         for (const folder of vscode.workspace.workspaceFolders) {
             const folderPath = folder.uri.fsPath;
             
-            // دالة بحث متكررة
+            // Recursive function to scan directories for .sym files
             function scanDir(dirPath) {
                 if (!fs.existsSync(dirPath)) return;
                 const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -199,7 +235,7 @@ case 'execOp':
                 for (const entry of entries) {
                     const fullPath = path.join(dirPath, entry.name);
                     if (entry.isDirectory()) {
-                        scanDir(fullPath); // نزول للمجلد الفرعي
+                        scanDir(fullPath); // Recursively scan subdirectory
                     } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.sym')) {
                         try {
                             const data = fs.readFileSync(fullPath, 'utf8');
@@ -224,7 +260,7 @@ case 'execOp':
             }
         });
 
-        // ✅ الاستماع على Undo/Redo وتغييرات VS Code
+        //Listen for Undo/Redo and VS Code changes
         const docDisposable = vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.uri.toString() === document.uri.toString()) {
                 sendContent(e.document.getText());
@@ -235,7 +271,6 @@ webviewPanel.onDidDispose(() => {
     msgDisposable.dispose();
     docDisposable.dispose();
     
-    // ✅ إزالة المرجع عند الإغلاق
     if (DSpiceEditorProvider.activeWebview === webviewPanel.webview) {
         DSpiceEditorProvider.activeWebview = null;
     }
@@ -249,7 +284,8 @@ webviewPanel.onDidDispose(() => {
             document.positionAt(document.getText().length)
         );
         edit.replace(document.uri, fullRange, content);
-        await vscode.workspace.applyEdit(edit);
+         await vscode.workspace.applyEdit(edit);
+   
     }
 
     getHtmlForWebview(webview) {
@@ -259,7 +295,7 @@ webviewPanel.onDidDispose(() => {
         const cadPath = vscode.Uri.joinPath(mediaPath,'cad');
         const dialogPath = vscode.Uri.joinPath(mediaPath,'dialog');
 
-        // ✅ تعريف جميع المتغيرات بشكل صحيح
+        // Define all variables correctly
         const rulerJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'ruler.js'));
         const gridJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'grid.js'));
         const bodyJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'body.js'));
@@ -297,6 +333,7 @@ webviewPanel.onDidDispose(() => {
         const propertiesRouterJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'properties', 'propertiesRouter.js'));
         const symbolsPanelJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'symbolsPanel.js'));
         const signalDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'signalDialog.js'));
+        const listModelsDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'listModelsDialog.js'));
         const drawingJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'drawing.js'));
         const stdJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'std.js'));
         const plotlyJs =webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'pack','plotly-latest.min.js'));
@@ -362,6 +399,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${propertiesRouterJs}"></script>
     <script nonce="${nonce}" src="${symbolsPanelJs}"></script>
     <script nonce="${nonce}" src="${signalDialogJs}"></script>
+    <script nonce="${nonce}" src="${listModelsDialogJs}"></script>
     <script nonce="${nonce}" src="${rulerJs}"></script>
     <script nonce="${nonce}" src="${gridJs}"></script>
     <script nonce="${nonce}" src="${bodyJs}"></script>
@@ -380,7 +418,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
 
-        // ✅ استقبال التحديثات من VS Code (بما فيها Undo/Redo)
+        // Receive updates from VS Code (including Undo/Redo)
         window.addEventListener('message', event => {
             const msg = event.data;
             console.log('Message from VS Code:', msg.type);
@@ -448,7 +486,7 @@ webviewPanel.onDidDispose(() => {
            
         });
 
-        // إشعار VS Code بأن الـ Webview جاهز
+        // Notify VS Code that the Webview is ready
         vscode.postMessage({ type: 'ready' });
     </script>
     

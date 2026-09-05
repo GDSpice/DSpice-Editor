@@ -667,10 +667,11 @@ console.log(svgs[1]); // محتوى أول ملف
 }
 
 async function showSymbolPanel() {
-         drawing.updateDataSymbols();
+         //drawing.updateDataSymbols();
+
 
       if (typeof symbolsPanel !== 'undefined') {
-            symbolsPanel.show(); // if symbolsPanel is already defined, toggle its visibility
+          //  symbolsPanel.show(); // if symbolsPanel is already defined, toggle its visibility
         }
       
-  }
+}

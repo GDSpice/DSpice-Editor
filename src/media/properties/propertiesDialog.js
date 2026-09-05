@@ -581,16 +581,15 @@ function updatePreview() {
 }
 
 // Double-click on drawing area to show properties
-
 function getDialog(setClick) {
     switch (setClick) {
-        case 'ioPosProbe':
+        case 'ioPosProbe': {
             var str = mtable.select.childNodes[2].textContent.split('=');
             try {
                 if (!signalDialog) signalDialog = new fSignalDialog();
                 const result = getElementListSpice();
                 signalDialog.initData(result, str[0], false);
-                signalDialog.onSubmit = function(result) {
+                signalDialog.onSubmit = function (result) {
                     mtable.select.childNodes[2].textContent = result.selectedSignal;
                     findPosProb();
                     probeSelect();
@@ -600,5 +599,26 @@ function getDialog(setClick) {
                 console.log('Error', error.message);
             }
             break;
+        }
+
+        case 'openEditorListModels': {
+            drawing.getListModel(
+                {
+                    file: mtable.select.getAttribute('modelfile'),
+                    model: mtable.select.getAttribute('modelname')
+                },
+                function (result) {
+                    mtable.select.setAttribute('modelfile', result.file);
+                    mtable.select.setAttribute('modelname', result.model);
+                    mtable.select.setAttribute('dir', 'local');
+                    mtable.select.textContent = result.model;
+                    modelSelected();
+                },
+                function () {
+                    console.log('Cancelled');
+                }
+            );
+            break;
+        }
     }
 }

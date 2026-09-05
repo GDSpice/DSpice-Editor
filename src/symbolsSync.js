@@ -1,3 +1,14 @@
+/*
+#--------------------------------------------------------------------------------------------------
+Name:        symbolsSync.js
+Author:      d.fathi
+Created:     28/08/2026
+Copyright:   (c) DSpice 2026
+Licence:     free
+#---------------------------------------------------------------------------------------------------
+Description: Module to scan symbols folder and sync data.json with robust regex
+*/
+
 const fs = require('fs');
 const path = require('path');
 
@@ -7,7 +18,7 @@ class SymbolsSync {
         const symbolsDir = path.join(extPath, 'symbols');
         const dataJsonPath = path.join(extPath, 'data.json');
 
-        // قراءة data.json الحالي
+        // Read the current data.json
         let currentData = { dirs: [], Amplifier: [], Basic: [], Digital: [], Semiconductor: [], Source: [] };
         if (fs.existsSync(dataJsonPath)) {
             try {
@@ -17,7 +28,7 @@ class SymbolsSync {
             }
         }
 
-        // حفظ الترتيب القديم
+        // Preserve the old order
         const oldDirsOrder = currentData.dirs || [];
         const oldFilesOrder = {};
         for (const key of Object.keys(currentData)) {
@@ -26,7 +37,7 @@ class SymbolsSync {
             }
         }
 
-        // قراءة المجلدات والملفات الفعلية
+        // Read the actual directories and files
         const newDirs = [];
         const newFilesMap = {};
 
@@ -56,7 +67,7 @@ class SymbolsSync {
 
         scanDir(symbolsDir, '');
 
-        // الحفاظ على الترتيب القديم + حذف غير الموجود
+        // Preserve the old order and remove missing items
         const syncedDirs = oldDirsOrder.filter(d => newDirs.includes(d));
         const syncedFiles = {};
         for (const key of Object.keys(oldFilesOrder)) {
@@ -67,7 +78,7 @@ class SymbolsSync {
             }
         }
 
-        // إضافة العناصر الجديدة
+        // Add new items
         for (const d of newDirs) {
             if (!syncedDirs.includes(d)) {
                 syncedDirs.push(d);
@@ -82,16 +93,15 @@ class SymbolsSync {
             }
         }
 
-        // بناء الكائن النهائي
+        // Build the final object
         const result = { dirs: syncedDirs };
         for (const key of Object.keys(syncedFiles)) {
             result[key] = syncedFiles[key];
         }
 
-        // كتابة data.json
+        // Write data.json
         try {
             fs.writeFileSync(dataJsonPath, JSON.stringify(result, null, 4), 'utf8');
-            console.log('✅ data.json synced successfully');
             return result;
         } catch (e) {
             console.error('Error writing data.json:', e);
